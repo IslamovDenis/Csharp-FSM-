@@ -6,6 +6,12 @@ using System.Text;
 using System.Threading;
 // using System.Threading.Tasks;  For .NET 4.0
 
+/// <summary>
+/// Файл FiniteStateMachine.cs
+/// Автор: Исламов Денис, ОАО "ДЖЕТ"
+/// Вид лицензии: GNU LGPL 
+/// </summary>  
+
 namespace FiniteStateMachineProject
 { 
   /// <summary>
