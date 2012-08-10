@@ -12,10 +12,10 @@ Who-to-use example with console Main function.
 <b>FiniteStateMachine.cs</b>
 
 FSM class file.
+License under the terms of the GNU Lesser General Public License (LGPL) version 2.1
 
 ### Quick tutorial:
-
-  1. Init class member with start condition name and function of this condition:
+Init class member with start condition name and function of this condition:
 
     public void StartStateFunc() 
     {
@@ -25,7 +25,8 @@ FSM class file.
     // delegate type here is "void foo()"
     var fsm = new FiniteStateMachine("StartState", StartStateFunc);
 
-  2. Add some states and functions:
+
+Add some states and functions:
 
     public void StateAFunc() 
     {
@@ -40,9 +41,10 @@ FSM class file.
     fsm.AddState("A", StateAFunc);
     fsm.AddState("B", StateBFunc);
     
-  3. And if you need you can add some transitions. Transition look like state, which connect two exist state, 
-     but they have only one type of events for finishing. You can use FSM without transitions, but it can help you
-     support good logical structure. 
+
+And if you need you can add some transitions. Transition look like state, which connect two exist state, 
+but they have only one type of events for finishing. You can use FSM without transitions, but it can help you
+support good logical structure:
 
     public void ABConnect() 
     {
@@ -51,4 +53,25 @@ FSM class file.
       
     fsm.AddTransition("A", "B", TransferWater);
     
-  4. Try to run it!
+
+At the end  - add event for control our state conversion:
+
+    AddEvent("EventAB", "A", "B");
+    
+    
+Let's try our FSM:
+
+    fsm.EventHappen("EventAB");            // a -> transition to b
+    fsm.EventHappen("finish transition");  // transition -> b
+    
+If you want, you can back-up you FSM to first state, but use it accurate:
+
+    fsm.CanReset = true;  // allow back-up to first step, false by default
+    fsm.Reset();
+    
+###FSM Logical Presentation
+And last one - you can save you FSM like graph with all states, transitions and events in file. At current version only 
+[dot](http://en.wikipedia.org/wiki/DOT_language) format is supported. You can view this file in any type of text editor
+or like vector image in special application like [graphviz](http://graphviz.org/)
+
+    fsm.SaveToFile("dot");  // save *.dot file
