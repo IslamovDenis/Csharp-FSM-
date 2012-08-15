@@ -75,7 +75,11 @@ And last one - you can save you FSM like graph with all states, transitions and 
 or like vector image in special application like [graphviz](http://graphviz.org/)
 
     fsm.SaveToFile("dot");  // save *.dot file
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> f6701b04c077fc6eba559c3024207b4454e17fe3
 Install, Compile and Run
 -------------------
 Clone repo:
@@ -90,4 +94,7 @@ In Console/Terminal:
 
     $gmcs FiniteStateMachine.cs Main.cs
     $mono FiniteStateMachine.exe
+<<<<<<< HEAD
 
+=======
+>>>>>>> f6701b04c077fc6eba559c3024207b4454e17fe3
