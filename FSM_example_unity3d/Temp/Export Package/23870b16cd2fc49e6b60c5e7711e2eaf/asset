@@ -10,7 +10,7 @@ public class FSMCube : MonoBehaviour {
                 rotationSpeed = 0.5f,
                 delay         = 0.0f;
   
-  private bool sayHello = true;
+  private bool sayHello = false;
   
   public Transform Target, 
                    End;
@@ -25,13 +25,13 @@ public class FSMCube : MonoBehaviour {
 
   public void SayHello() 
   { 
-    if (sayHello == true) 
+    if (sayHello == false) 
     {
       Debug.Log("SayHello()");
       Debug.Log("Hi! I like your strange red color!");
       
       Text.renderer.enabled = true;
-      sayHello              = false;
+      sayHello              = true;
     }
     if (delay >= 2)
     {
@@ -88,8 +88,6 @@ public class FSMCube : MonoBehaviour {
   {
     if (GUI.Button (new Rect (10,10, 126, 30), "Run state machine!")) {
       m_FSM.EventHappen("go and say hello");
-      sayHello = true;
-      delay    = 0.0f;
       print ("FSM running");
     }
   }
