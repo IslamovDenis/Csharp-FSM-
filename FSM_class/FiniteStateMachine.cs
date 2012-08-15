@@ -10,6 +10,13 @@ using System.Threading;
 /// Файл FiniteStateMachine.cs
 /// Автор: Исламов Денис, ОАО "ДЖЕТ"
 /// Вид лицензии: GNU LGPL 
+///
+/// TODO
+/// 1). Добавить запрет на разбиения на несвязный граф
+/// 2). Матрицы событий
+/// 3). Внешний класс - отображение 
+///     (и возможность редактирования) в Юнити
+/// 4). Экспорт / импорт (пока только сохранение в *.dot)
 /// </summary>  
 
 namespace FiniteStateMachineProject
@@ -20,13 +27,14 @@ namespace FiniteStateMachineProject
   public class FiniteStateMachine
   {
     // Переход между событиями записывается как "first_state->second_state"
-    private readonly Dictionary<string, State>      _states;      // Имя состояния, функция 
-    private readonly Dictionary<string, Transition> _transitions; // состояние -> cледующие событие, функция перехода
-    private readonly Dictionary<string, string>     _events;      // событие, состояние -> cледующие состояние
+    private readonly Dictionary<string, State>      _states;      // имя состояния, функция 
+    private readonly Dictionary<string, Transition> _transitions; // имя состояния -> cледующие состояния, функция перехода
+    private readonly Dictionary<string, string>     _events;      // имя события, имя состояния -> cледующие состояния
 
     private string _startStateName;
 
-    private bool _transitionState;
+    private bool _transitionState,
+                 _stopped;
 
     public delegate void State();       // Функция состояния
     public delegate void Transition();  // Переход между событиями, если таковой есть
@@ -42,6 +50,16 @@ namespace FiniteStateMachineProject
     public string CurrenStateName { get; private set; }
     
     /// <summary>
+    /// Имя предыдущего события, только get
+    /// </summary>
+    public string PrevEventName { get; private set; }
+
+    /// <summary>
+    /// Имя текущего события, только get
+    /// </summary>
+    public string CurrenEventName { get; private set; }
+    
+    /// <summary>
     /// Константа - конец перехода
     /// </summary>
     public static string FINISH_TRANSITION { get; set; }
@@ -50,6 +68,22 @@ namespace FiniteStateMachineProject
     /// Возможно ли делать откат КА?
     /// </summary>
     public bool CanReset { get; set; }
+
+    /// <summary>
+    /// Остановка КА
+    /// </summary>
+    public void Stop() 
+    {
+      _stopped = true;
+    }
+
+    /// <summary>
+    /// Продолжение работы КА
+    /// </summary>
+    public void Continue()
+    {
+      _stopped = true; 
+    }
 
     /// <summary>
     /// Конструктор - инициализация словарей
@@ -65,6 +99,9 @@ namespace FiniteStateMachineProject
         PrevStateName     = startStateName;
         _startStateName   = startStateName;
 
+        PrevEventName   = "";
+        CurrenEventName = "";
+
         FINISH_TRANSITION = "finish transition";
         
         _transitionState = false;
@@ -75,7 +112,7 @@ namespace FiniteStateMachineProject
 
         var execFunc = new State(stateFunc);
         _states.Add(startStateName, execFunc);
-        execFunc.DynamicInvoke();
+        execFunc.Invoke();
       }
       else if (startStateName == null)
       {
@@ -93,60 +130,90 @@ namespace FiniteStateMachineProject
     /// <param name="eventName">Имя события, по завершению перехода, всегда передается "finish transition"</param>
     /// <exception cref="ApplicationException">Нет события связанного с текущим состоянием</exception>
     /// <exception cref="KeyNotFoundException">Нет ключа в словаре событий</exception>
-    /// <exception cref="ArgumentNullException">аргумент eventName = null</exception>
+    /// <exception cref="ArgumentNullException">Аргумент eventName = null</exception>
     /// <exception cref="ApplicationException">Состояние - не переходное</exception>
     public void EventHappen(string eventName)
-    {
+    {  
       if (eventName != null) 
-      {
+      { 
+        // Если происходит одно и тоже событие - делаем одно и тоже
+        // Добавлено, для событий крутящихся в цикле
         if (eventName != FINISH_TRANSITION)
         {
           if (_events.ContainsKey(eventName) && 
               LeftPart(_events[eventName]) == CurrenStateName) {
-            PrevStateName   = CurrenStateName;               // a = b
-            CurrenStateName = RightPart(_events[eventName]); // b = следующие ребро
-
+            // Если происходит одно и тоже событие - делаем одно и тоже!
+            // Добавлено, для событий крутящихся в цикле
+            if (PrevEventName != eventName) {
+              PrevStateName   = CurrenStateName;               // a = b
+              CurrenStateName = RightPart(_events[eventName]); // b = следующие ребро
+            }
+            
             // выполняем переход, если таковой есть
             if (_transitions.ContainsKey(PrevStateName + "->" + CurrenStateName))
             {
               _transitionState = true;
-              _transitions[PrevStateName + "->" + CurrenStateName].DynamicInvoke();
+              // _transitions[PrevStateName + "->" + CurrenStateName].Invoke();
             }
-            else // В проитвном случае сразу переключаемся на состояние
+            else // В противном случае - переключаемся на состояние
             {
               _transitionState = false;
-              _states[CurrenStateName].DynamicInvoke();
+              // _states[CurrenStateName].Invoke();
             }
           }
           else if (!_events.ContainsKey(eventName))  
           {
-            throw new KeyNotFoundException("Can't find " + eventName + 
-                                           " in events collection");
+            throw new KeyNotFoundException("Can't find \"" + eventName + 
+                                           "\" in events collection");
           }
-          else if (!_events[eventName].StartsWith(CurrenStateName))
+          else if (RightPart(_events[eventName]) != CurrenStateName)
           {
-            throw new ApplicationException("Event " + eventName + 
-                                           " haven't connection with current state");
+            throw new ApplicationException("Event \"" + eventName + 
+                                           "\"(" + _events[eventName]+")"+ 
+                                           "\" haven't connection with current state " +
+                                           CurrenStateName);
           }
         }
-        else
+        else if (PrevEventName != FINISH_TRANSITION)
         {
           if (_transitionState)
-          {
-            _transitionState = false;
-            _states[CurrenStateName].DynamicInvoke();
-          }
+          {   
+              _transitionState = false;
+              // _states[CurrenStateName].Invoke();
+          } 
           else
           {
-            throw new ApplicationException("Current state - not transition");
+            throw new ApplicationException("Current state \"" + CurrenStateName +
+                                           "\" - not transition");
           }
         }
+        else // PrevEventName == FINISH_TRANSITION && eventName == FINISH_TRANSITION
+        {
+          throw new ApplicationException("Two transitions without state");
+        }
       }
-      else // eventName == null)
+      else // eventName == null
       {
         throw new ArgumentNullException("eventName");
       }
-      
+    }
+
+    /// <summary>
+    /// Вызов функции делегата текущего состояния / перехода
+    /// </summary>
+    public void Invoke() 
+    {
+      if (_stopped == false)
+      {
+        if (_transitionState == true)
+        {
+          _transitions[PrevStateName + "->" + CurrenStateName].Invoke();
+        }
+        else
+        {
+          _states[CurrenStateName].Invoke();
+        }
+      }
     }
 
     /// <summary>
@@ -159,7 +226,8 @@ namespace FiniteStateMachineProject
     /// <exception cref="ArgumentException">Уже есть такое состояние в коллекции состояний</exception>
     public void AddState(string stateName, State stateFunc)
     {
-      if (stateName != null && stateFunc != null) {
+      if (stateName != null && stateFunc != null)
+      {
         if (!_states.ContainsKey(stateName)) 
         {
           var execFunc = new State(stateFunc);
@@ -167,8 +235,8 @@ namespace FiniteStateMachineProject
         }
         else  // (_states.ContainsKey(stateName))
         {
-        throw new ArgumentException("State " + stateName + 
-                                    "already present in  states collection");
+          throw new ArgumentException("State \"" + CurrenStateName + 
+                                      "\" already present in states collection");
         }
       }
       else if (stateName == null)
@@ -179,7 +247,6 @@ namespace FiniteStateMachineProject
       {
         throw new ArgumentNullException("stateFunc");
       }
-      
     }
 
     /// <summary>
@@ -191,7 +258,8 @@ namespace FiniteStateMachineProject
     {
       if (!_states.ContainsKey(stateName))
       {
-        throw new KeyNotFoundException("Can't find " + stateName + " in states collection");
+        throw new KeyNotFoundException("Can't find \"" + stateName +
+                                       "\" in states collection");
       }
 
       _states.Remove(stateName);
@@ -223,20 +291,20 @@ namespace FiniteStateMachineProject
         }
         else  // _transitions.ContainsKey(transitionName))
         {
-        throw new ArgumentException("Transition " + startState +
-                                    " already present in transitions collection");
+        throw new ArgumentException("Transition \"" + startState +
+                                    "\" already present in transitions collection");
         }
       }
 
       else if (!_states.ContainsKey(startState))
       {
-        throw new KeyNotFoundException("Can't find state " + startState +
-                                       " in states collection");
+        throw new KeyNotFoundException("Can't find state \"" + startState +
+                                       "\" in states collection");
       }
       else if (!_states.ContainsKey(endState))
       {
-        throw new KeyNotFoundException("Can't find state " + endState +
-                                       " in states collection");
+        throw new KeyNotFoundException("Can't find state \"" + endState +
+                                       "\" in states collection");
       }
     }
 
@@ -278,8 +346,8 @@ namespace FiniteStateMachineProject
         }
         else // !_transitions.ContainsKey(transitionName)
         {
-          throw new KeyNotFoundException("Can't find " + transitionName +
-                                         "int transitions collection");
+          throw new KeyNotFoundException("Can't find \"" + transitionName +
+                                         "\" in transitions collection");
         }
       }
       else  // transitionName == null
@@ -308,8 +376,8 @@ namespace FiniteStateMachineProject
         }
         else // _events.ContainsKey(eventName))
         {
-          throw new ArgumentException("Event" + eventName +
-                                      "already present in transitions collection");
+          throw new ArgumentException("Event \"" + eventName +
+                                      "\" already present in transitions collection");
         }
       }
       else if (!_states.ContainsKey(startState))
@@ -388,7 +456,7 @@ namespace FiniteStateMachineProject
     /// <param name="edge">Названия ребра, связывающего состояния (a->b)</param>
     /// <exception cref="ApplicationException">Проверяет, есть ли в строке '->'</exception>
     /// <returns>Левая вершина (начало ребра), если таковой нет</returns>
-    private static string LeftPart(string edge)
+    public static string LeftPart(string edge)
     {
       var indexOfQuote = edge.IndexOf('>');
       if (indexOfQuote != -1)
@@ -400,7 +468,8 @@ namespace FiniteStateMachineProject
       }
       else  // indexOfQuote == -1
       {
-        throw new ApplicationException("Can't find '->' symbols in string " + edge);
+        throw new ApplicationException("Can't find '->' symbols in string " +
+                                       edge);
       }
     }
 
@@ -409,7 +478,7 @@ namespace FiniteStateMachineProject
     /// </summary>
     /// <param name="edge">Названия ребра, связывающего состояния (a->b)</param>
     /// <returns>Правая вершина (конец ребра) или null, если таковой нет</returns>
-    private static string RightPart(string edge)
+    public static string RightPart(string edge)
     {
       var indexOfQuote = edge.IndexOf('>');
       if (indexOfQuote != -1)
