@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
-// using System.Threading.Tasks;  For .NET 4.0
 
+#pragma warning disable 1587
 /// <summary>
 /// Файл FiniteStateMachine.cs
 /// Автор: Исламов Денис, ОАО "ДЖЕТ"
@@ -18,6 +17,7 @@ using System.Threading;
 ///     (и возможность редактирования) в Юнити
 /// 4). Экспорт / импорт (пока только сохранение в *.dot)
 /// </summary>  
+#pragma warning restore 1587
 
 namespace FiniteStateMachineProject
 { 
@@ -31,7 +31,7 @@ namespace FiniteStateMachineProject
     private readonly Dictionary<string, Transition> _transitions; // имя состояния -> cледующие состояния, функция перехода
     private readonly Dictionary<string, string>     _events;      // имя события, имя состояния -> cледующие состояния
 
-    private string _startStateName;
+    private readonly string _startStateName;
 
     private bool _transitionState,
                  _stopped;
@@ -62,7 +62,7 @@ namespace FiniteStateMachineProject
     /// <summary>
     /// Константа - конец перехода
     /// </summary>
-    public static string FINISH_TRANSITION { get; set; }
+    public static string FinishTransition { get; set; }
     
     /// <summary>
     /// Возможно ли делать откат КА?
@@ -102,7 +102,7 @@ namespace FiniteStateMachineProject
         PrevEventName   = "";
         CurrenEventName = "";
 
-        FINISH_TRANSITION = "finish transition";
+        FinishTransition = "finish transition";
         
         _transitionState = false;
 
@@ -118,7 +118,7 @@ namespace FiniteStateMachineProject
       {
         throw new ArgumentNullException("startStateName");
       }
-      else if (stateFunc == null)
+      else //if (stateFunc == null)
       {
         throw new ArgumentNullException("stateFunc");
       }
@@ -138,7 +138,7 @@ namespace FiniteStateMachineProject
       { 
         // Если происходит одно и тоже событие - делаем одно и тоже
         // Добавлено, для событий крутящихся в цикле
-        if (eventName != FINISH_TRANSITION)
+        if (eventName != FinishTransition)
         {
           if (_events.ContainsKey(eventName) && 
               LeftPart(_events[eventName]) == CurrenStateName) {
@@ -174,7 +174,7 @@ namespace FiniteStateMachineProject
                                            CurrenStateName);
           }
         }
-        else if (PrevEventName != FINISH_TRANSITION)
+        else if (PrevEventName != FinishTransition)
         {
           if (_transitionState)
           {   
@@ -205,7 +205,7 @@ namespace FiniteStateMachineProject
     {
       if (_stopped == false)
       {
-        if (_transitionState == true)
+        if (_transitionState)
         {
           _transitions[PrevStateName + "->" + CurrenStateName].Invoke();
         }
@@ -243,7 +243,7 @@ namespace FiniteStateMachineProject
       {
         throw new ArgumentNullException("stateName");
       }
-      else if (stateFunc == null)
+      else // if (stateFunc == null)
       {
         throw new ArgumentNullException("stateFunc");
       }
@@ -325,7 +325,7 @@ namespace FiniteStateMachineProject
       {
         throw new ArgumentNullException("startState");
       }
-      else if (endState == null)
+      else // if (endState == null)
       {
         throw new ArgumentNullException("endState");
       }
@@ -466,11 +466,10 @@ namespace FiniteStateMachineProject
 
         return new string(tmpForCopy);
       }
-      else  // indexOfQuote == -1
-      {
-        throw new ApplicationException("Can't find '->' symbols in string " +
-                                       edge);
-      }
+      
+      // else if indexOfQuote == -1
+      throw new ApplicationException("Can't find '->' symbols in string " +
+                                      edge);
     }
 
     /// <summary>
@@ -513,7 +512,7 @@ namespace FiniteStateMachineProject
     /// Записать структуру КА в файл
     /// </summary>
     /// <param name="fileFormat">Формат файла (пока только dot)</param>
-    /// <param name="fileFormat">Имя файла (указывайте расширение соответственно формату)</param>
+    /// <param name="fileName">Имя файла (указывайте расширение соответственно формату)</param>
     /// <exception cref="ArgumentNullException">Аргумент fileFormat = null</exception>
     /// <exception cref="ArgumentNullException">Аргумент fileName = null</exception>
     /// <exception cref="ApplicationException">Не верный формат файла</exception>
@@ -541,18 +540,21 @@ namespace FiniteStateMachineProject
           
             foreach (var state in _states)
             { 
-              StringBuilder stateKey = new StringBuilder(state.Key);
+              var stateKey = new StringBuilder(state.Key);
               stateKey.Replace('\\', '_'); 
               stateKey.Replace(' ', '_');
               
-              graphWriter.WriteLine(string.Format("\t{0}[label=\"{1}\" color=lightblue2]",
-                                                  stateKey, state.Key));
+              // ReSharper disable RedundantStringFormatCall
+              graphWriter.WriteLine(string.Format("\t{0}[label=\"{1}\" color=lightblue2]", 
+                                    stateKey, state.Key));
+              // ReSharper restore RedundantStringFormatCall
+                                                  
             }
             
             graphWriter.WriteLine();
             foreach (var events in _events)
             { 
-              StringBuilder eventsValue = new StringBuilder(events.Value);
+              var eventsValue = new StringBuilder(events.Value);
               eventsValue.Replace('\\', '_'); 
               eventsValue.Replace(' ', '_');
               
@@ -577,7 +579,7 @@ namespace FiniteStateMachineProject
       {
         throw new ArgumentNullException("fileFormat");
       }
-      else if(fileName == null) 
+      else // if(fileName == null) 
       {
         throw new ArgumentNullException("fileName");
       }
@@ -589,12 +591,12 @@ namespace FiniteStateMachineProject
     /// <param name="fileFormat">Формат файла (пока только dot)</param>
     public void SaveToFile(string fileFormat) 
     {
-      StringBuilder fileNameAdd = new StringBuilder(DateTime.Now.ToString());
+      var fileNameAdd = new StringBuilder(DateTime.Now.ToString());
       fileNameAdd.Replace('/', '_');
       fileNameAdd.Replace(' ', '_');
       fileNameAdd.Replace(':', '_');
       
-      this.SaveToFile(fileFormat, string.Format("state_graph_{0}.{1}", 
+      SaveToFile(fileFormat, string.Format("state_graph_{0}.{1}", 
                                                 fileNameAdd, fileFormat));
     }
 
@@ -603,7 +605,7 @@ namespace FiniteStateMachineProject
     /// </summary>
     public void SaveToFile() 
     {
-      this.SaveToFile("dot");
+      SaveToFile("dot");
     } 
   }
 }

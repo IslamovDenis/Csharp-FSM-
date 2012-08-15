@@ -1,19 +1,19 @@
 using UnityEngine;
-using System.Collections;
 using FiniteStateMachineProject;
 
 public class FSMCube : MonoBehaviour {
-  private Transform m_myTransform;
-  private FiniteStateMachine m_FSM;
-  
-  private float moveSpeed     = 0.5f,
-                rotationSpeed = 0.5f,
-                delay         = 0.0f;
-  
-  private bool sayHello = true;
+  private Transform _myTransform;
+  private FiniteStateMachine _fsm;
+
+  private const float MoveSpeed     = 0.5f,
+                      RotationSpeed = 0.5f;
+
+  private float _delay;
+
+  private bool _sayHello = true;
   
   public Transform Target, 
-                   End;
+                    End;
 
   public GameObject Text;
 
@@ -25,53 +25,53 @@ public class FSMCube : MonoBehaviour {
 
   public void SayHello() 
   { 
-    if (sayHello == true) 
+    if (_sayHello) 
     {
       Debug.Log("SayHello()");
       Debug.Log("Hi! I like your strange red color!");
       
       Text.renderer.enabled = true;
-      sayHello              = false;
+      _sayHello              = false;
     }
-    if (delay >= 2)
+    if (_delay >= 2)
     {
       Text.renderer.enabled = false;
-      m_FSM.EventHappen("say goodbye and go away");
+      _fsm.EventHappen("say goodbye and go away");
     }
 
-    delay += Time.deltaTime;
+    _delay += Time.deltaTime;
   }
 
-  public void moveTo(Transform target) 
+  public void MoveTo(Transform target) 
   { 
     Debug.Log("moveTo()");
     
     transform.position = 
-      Vector3.Lerp(transform.position, target.position, Time.deltaTime * moveSpeed);
+      Vector3.Lerp(transform.position, target.position, Time.deltaTime * MoveSpeed);
     transform.rotation = 
-      Quaternion.Lerp(transform.rotation, target.rotation, Time.deltaTime * rotationSpeed);
+      Quaternion.Lerp(transform.rotation, target.rotation, Time.deltaTime * RotationSpeed);
 
-    if((m_myTransform.position - target.position).magnitude <= 1.5f)
+    if((_myTransform.position - target.position).magnitude <= 1.5f)
     {
-      m_FSM.EventHappen("finish transition");
+      _fsm.EventHappen("finish transition");
       Debug.Log("finish transition");
     }
   }
   
   void Start() 
   {
-    m_myTransform = transform;
+    _myTransform = transform;
     
     Text.renderer.enabled = false;
 
-    m_FSM = new FiniteStateMachine("start state", StartState);
-    m_FSM.AddState("say hello", SayHello);
+    _fsm = new FiniteStateMachine("start state", StartState);
+    _fsm.AddState("say hello", SayHello);
 
-    m_FSM.AddEvent("go and say hello", "start state", "say hello");
-    m_FSM.AddEvent("say goodbye and go away", "say hello", "start state"); 
+    _fsm.AddEvent("go and say hello", "start state", "say hello");
+    _fsm.AddEvent("say goodbye and go away", "say hello", "start state"); 
     
-    m_FSM.AddTransition("start state", "say hello",  ()=> { moveTo(Target); });
-    m_FSM.AddTransition("say hello",  "start state", ()=> { moveTo(End); } );
+    _fsm.AddTransition("start state", "say hello",  ()=> MoveTo(Target));
+    _fsm.AddTransition("say hello",  "start state", ()=> MoveTo(End));
   }
 
   void Update() 
@@ -81,15 +81,16 @@ public class FSMCube : MonoBehaviour {
       // m_FSM.EventHappen("go and say hello");
     }
 
-    m_FSM.Invoke();
+    _fsm.Invoke();  // Каждый раз вызываем делегата текущего состояния или перехода
+                    // Поэтому будьте внимательны, функция и так крутиться каждый цикл!
   }
 
   void OnGUI() 
   {
     if (GUI.Button (new Rect (10,10, 126, 30), "Run state machine!")) {
-      m_FSM.EventHappen("go and say hello");
-      sayHello = true;
-      delay    = 0.0f;
+      _fsm.EventHappen("go and say hello");
+      _sayHello = true;
+      _delay    = 0.0f;
       print ("FSM running");
     }
   }

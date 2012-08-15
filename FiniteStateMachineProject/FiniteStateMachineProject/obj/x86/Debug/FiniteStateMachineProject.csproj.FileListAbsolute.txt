@@ -1,0 +1,4 @@
+c:\users\disa\documents\visual studio 2010\Projects\FiniteStateMachineProject\FiniteStateMachineProject\bin\Debug\FiniteStateMachineProject.exe
+c:\users\disa\documents\visual studio 2010\Projects\FiniteStateMachineProject\FiniteStateMachineProject\bin\Debug\FiniteStateMachineProject.pdb
+c:\users\disa\documents\visual studio 2010\Projects\FiniteStateMachineProject\FiniteStateMachineProject\obj\x86\Debug\FiniteStateMachineProject.exe
+c:\users\disa\documents\visual studio 2010\Projects\FiniteStateMachineProject\FiniteStateMachineProject\obj\x86\Debug\FiniteStateMachineProject.pdb

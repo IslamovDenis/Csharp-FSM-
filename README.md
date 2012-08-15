@@ -82,13 +82,14 @@ Install, Compile and Run
 -------------------
 Clone repo:
 
-    git clone git://github.com/IslamovDenis/Csharp-FSM-.git
+    $git clone git://github.com/IslamovDenis/Csharp-FSM-.git
 
-Add code from files to empty VS C# Console project - replace code in
-Program.cs from Main.cs and add FiniteStateMashine.cs to Project.
+On Windows - open FiniteStateMachineProject -> FiniteStateMachineProject.sln by VS2010 and
+			compile
 
 On Mac/Linux - download [mono](http://www.mono-project.com/Main_Page) and
 In Console/Terminal:
 
     $gmcs FiniteStateMachine.cs Main.cs
     $mono FiniteStateMachine.exe
+

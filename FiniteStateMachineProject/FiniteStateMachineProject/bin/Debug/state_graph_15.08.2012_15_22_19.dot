@@ -1,0 +1,22 @@
+/* This file generate automaticaly by FSM class function
+ * Programmed by Islamov Denis (GET, MIPT)
+ */
+
+digraph state {
+	graph [ratio=fill]
+	size="2"
+	node [shape=circle style=filled]
+
+	Снять_чайник[label="Снять чайник" color=lightblue2]
+	Налить_воды[label="Налить воды" color=lightblue2]
+	Вылить_воду[label="Вылить воду" color=lightblue2]
+	Включить_плиту_и_вскипятить[label="Включить плиту и вскипятить" color=lightblue2]
+	Cвести_задачу_к_предыдущей[label="Cвести задачу к предыдущей" color=lightblue2]
+
+	Снять_чайник->Налить_воды[label="Чайник пуст" color=lightblue2]
+	Снять_чайник->Cвести_задачу_к_предыдущей[label="Чайник полон (мат)" style="dotted" color=lightblue2]
+	Снять_чайник->Включить_плиту_и_вскипятить[label="Чайник полон (физ)" color=lightblue2]
+	Cвести_задачу_к_предыдущей->Вылить_воду[label="Я это уже делал(а)!" style="dotted" color=lightblue2]
+	Вылить_воду->Снять_чайник[label="Вылить воду" color=lightblue2]
+	Налить_воды->Включить_плиту_и_вскипятить[label="Вскипятить" color=lightblue2]
+}

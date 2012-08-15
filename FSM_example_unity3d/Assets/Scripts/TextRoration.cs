@@ -1,30 +1,29 @@
 using UnityEngine;
 using System;
-using System.Collections;
 
 public class TextRoration : MonoBehaviour {
-  public  Transform cameraTransform, 
-                    cube;
+  public  Transform CameraTransform, 
+                    Cube;
 
-  private Transform m_myTransform;
+  private Transform _mMyTransform;
 	
   void Start () 
   {
-	  m_myTransform = transform;
+    _mMyTransform = transform;
 	  
-    if (cameraTransform == null)
+    if (CameraTransform == null)
     {
-      throw new ArgumentNullException("cameraTransform");
+      throw new ArgumentNullException("CameraTransform");
     }
-    if (cube == null)
+    if (Cube == null)
     {
-      throw new ArgumentNullException("cube");
+      throw new ArgumentNullException("Cube");
     }
   }
 	
-	void Update () 
+  void Update () 
   {
-    m_myTransform.position       = cube.position + new Vector3(0.0f, 0.0f, 0.5f);
-    m_myTransform.localRotation  = cameraTransform.rotation;
+    _mMyTransform.position       = Cube.position + new Vector3(0.0f, 0.0f, 0.5f);
+    _mMyTransform.localRotation  = CameraTransform.rotation;
   }
 }
