@@ -1,9 +1,11 @@
 Csharp-FSM-
 ===========
 
+version 0.120815 (beta)
+
 Abstract [Finite State Machine](http://en.wikipedia.org/wiki/Finite-state_machine) created via strings and delegates.
 
-Files info123
+Files info
 ----------
 <b>Main.cs</b>
 
